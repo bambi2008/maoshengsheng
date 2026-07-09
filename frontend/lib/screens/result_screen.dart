@@ -1,342 +1,343 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import '../theme.dart';
 import '../models/analysis_result.dart';
+import '../main.dart';
 
-class ResultScreen extends StatelessWidget {
+class ResultScreen extends StatefulWidget {
   final AnalysisResult result;
   final String? imagePath;
 
   const ResultScreen({super.key, required this.result, this.imagePath});
 
   @override
-  Widget build(BuildContext context) {
-    final risk = AppTheme.riskStyle(result.riskLevel);
-
-    return Scaffold(
-      backgroundColor: AppTheme.bg,
-      body: Column(
-        children: [
-          // Image header (if photo)
-          if (imagePath != null)
-            SizedBox(
-              height: 220,
-              width: double.infinity,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Image.file(File(imagePath!), fit: BoxFit.cover),
-                  // gradient overlay
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.black.withValues(alpha: 0.3),
-                          Colors.transparent,
-                          AppTheme.bg,
-                        ],
-                        stops: const [0, 0.5, 1],
-                      ),
-                    ),
-                  ),
-                  SafeArea(
-                    child: Padding(
-                      padding: const EdgeInsets.all(AppTheme.space2),
-                      child: _closeButton(context, light: true),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-          // Content sheet
-          Expanded(
-            child: Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: AppTheme.bg,
-                borderRadius: imagePath != null
-                    ? const BorderRadius.vertical(top: Radius.circular(AppTheme.radiusLg))
-                    : null,
-              ),
-              child: CustomScrollView(
-                slivers: [
-                  if (imagePath == null)
-                    SliverToBoxAdapter(
-                      child: SafeArea(
-                        bottom: false,
-                        child: Padding(
-                          padding: const EdgeInsets.all(AppTheme.space2),
-                          child: Align(
-                            alignment: Alignment.centerRight,
-                            child: _closeButton(context),
-                          ),
-                        ),
-                      ),
-                    ),
-                  SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(
-                        AppTheme.space4, AppTheme.space2, AppTheme.space4, AppTheme.space10),
-                    sliver: SliverList(
-                      delegate: SliverChildListDelegate([
-                        // Risk banner
-                        _RiskBanner(risk: risk, summary: result.summary),
-                        const SizedBox(height: AppTheme.space4),
-
-                        // Causes
-                        if (result.possibleCauses.isNotEmpty) ...[
-                          _sectionLabel('可能原因'),
-                          _Card(
-                            child: Column(
-                              children: result.possibleCauses
-                                  .map((c) => _bulletRow(c))
-                                  .toList(),
-                            ),
-                          ),
-                          const SizedBox(height: AppTheme.space4),
-                        ],
-
-                        // Home care
-                        if (result.homeCare.isNotEmpty) ...[
-                          _sectionLabel('居家处理'),
-                          _Card(
-                            child: Text(result.homeCare,
-                                style: AppTheme.body.copyWith(height: 1.6)),
-                          ),
-                          const SizedBox(height: AppTheme.space4),
-                        ],
-
-                        // When to see vet
-                        if (result.whenToSeeVet.isNotEmpty) ...[
-                          _sectionLabel('什么情况必须就医'),
-                          _Card(
-                            bg: AppTheme.red.withValues(alpha: 0.06),
-                            border: AppTheme.red.withValues(alpha: 0.15),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Icon(Icons.local_hospital_rounded,
-                                    color: AppTheme.red, size: 18),
-                                const SizedBox(width: AppTheme.space2),
-                                Expanded(
-                                  child: Text(result.whenToSeeVet,
-                                      style: AppTheme.body.copyWith(height: 1.6)),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: AppTheme.space4),
-                        ],
-
-                        // Similar cases
-                        if (result.matchedCases.isNotEmpty) ...[
-                          _sectionLabel('相似案例 · ${result.similarCasesCount} 个'),
-                          ...result.matchedCases
-                              .take(4)
-                              .map((c) => _CaseCard(matchedCase: c)),
-                          const SizedBox(height: AppTheme.space4),
-                        ],
-
-                        // Disclaimer
-                        _disclaimer(),
-                      ]),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _closeButton(BuildContext context, {bool light = false}) {
-    return GestureDetector(
-      onTap: () => Navigator.pop(context),
-      child: Container(
-        width: 32,
-        height: 32,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: light
-              ? Colors.black.withValues(alpha: 0.35)
-              : AppTheme.separator,
-        ),
-        child: Icon(Icons.close_rounded,
-            size: 18, color: light ? Colors.white : AppTheme.textSec),
-      ),
-    );
-  }
-
-  Widget _sectionLabel(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(left: AppTheme.space1, bottom: AppTheme.space2),
-      child: Text(text.toUpperCase(), style: AppTheme.sectionHeader),
-    );
-  }
-
-  Widget _bulletRow(String text) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 6,
-            height: 6,
-            margin: const EdgeInsets.only(top: 8, right: AppTheme.space2),
-            decoration: const BoxDecoration(
-                color: AppTheme.blue, shape: BoxShape.circle),
-          ),
-          Expanded(child: Text(text, style: AppTheme.body.copyWith(height: 1.5))),
-        ],
-      ),
-    );
-  }
-
-  Widget _disclaimer() {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Icon(Icons.info_outline_rounded,
-            color: AppTheme.textTert, size: 14),
-        const SizedBox(width: AppTheme.space2),
-        Expanded(
-          child: Text(result.disclaimer,
-              style: AppTheme.caption1.copyWith(color: AppTheme.textTert)),
-        ),
-      ],
-    );
-  }
+  State<ResultScreen> createState() => _ResultScreenState();
 }
 
-// ============================================================
-// Risk banner
-// ============================================================
-class _RiskBanner extends StatelessWidget {
-  final RiskStyle risk;
-  final String summary;
-  const _RiskBanner({required this.risk, required this.summary});
+class _ResultScreenState extends State<ResultScreen>
+    with TickerProviderStateMixin {
+  late AnimationController _animController;
+  late Animation<double> _fadeAnim;
+  late Animation<Offset> _slideAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _animController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+    );
+    _fadeAnim = CurvedAnimation(parent: _animController, curve: Curves.easeOut);
+    _slideAnim = Tween<Offset>(
+      begin: const Offset(0, 0.04),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _animController, curve: Curves.easeOutCubic));
+    _animController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animController.dispose();
+    super.dispose();
+  }
+
+  _RiskConfig get _rc => _riskConfig(widget.result.riskLevel);
 
   @override
   Widget build(BuildContext context) {
+    final r = widget.result;
+    return Scaffold(
+      backgroundColor: AppColors.bg,
+      body: SafeArea(
+        child: FadeTransition(
+          opacity: _fadeAnim,
+          child: SlideTransition(
+            position: _slideAnim,
+            child: Column(
+              children: [
+                // Header
+                _buildHeader(r),
+                // Body
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (widget.imagePath != null) _buildImage(),
+                        if (r.summary.isNotEmpty) ...[
+                          const SizedBox(height: 12),
+                          _buildSummary(r),
+                        ],
+                        if (r.possibleCauses.isNotEmpty) ...[
+                          const SizedBox(height: 12),
+                          _buildCard(
+                            icon: Icons.search_rounded,
+                            title: '可能原因',
+                            child: _buildCauses(r),
+                          ),
+                        ],
+                        if (r.homeCare.isNotEmpty) ...[
+                          const SizedBox(height: 12),
+                          _buildCard(
+                            icon: Icons.home_rounded,
+                            title: '居家处理',
+                            child: Text(r.homeCare,
+                                style: const TextStyle(
+                                    color: Colors.white, fontSize: 14, height: 1.7)),
+                          ),
+                        ],
+                        if (r.whenToSeeVet.isNotEmpty) ...[
+                          const SizedBox(height: 12),
+                          _buildCard(
+                            icon: Icons.local_hospital_rounded,
+                            title: '什么情况必须就医',
+                            danger: true,
+                            child: Text(r.whenToSeeVet,
+                                style: const TextStyle(
+                                    color: Colors.white, fontSize: 14, height: 1.7)),
+                          ),
+                        ],
+                        if (r.matchedCases.isNotEmpty) ...[
+                          const SizedBox(height: 12),
+                          _buildCard(
+                            icon: Icons.people_rounded,
+                            title: '相似案例 (${r.similarCasesCount}个)',
+                            child: _buildCases(r),
+                          ),
+                        ],
+                        const SizedBox(height: 16),
+                        // Disclaimer
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: AppColors.card,
+                            borderRadius: BorderRadius.circular(AppRadius.sm),
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Icon(Icons.info_outline,
+                                  color: AppColors.textTert, size: 14),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  r.disclaimer,
+                                  style: const TextStyle(
+                                      color: AppColors.textTert,
+                                      fontSize: 11,
+                                      height: 1.4),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader(AnalysisResult r) {
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(AppTheme.space4),
+      padding: const EdgeInsets.fromLTRB(16, 4, 8, 12),
       decoration: BoxDecoration(
-        color: risk.bg,
-        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+        color: _rc.color.withValues(alpha: 0.06),
+        border: const Border(
+          bottom: BorderSide(color: AppColors.divider, width: 0.5),
+        ),
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
             width: 44,
             height: 44,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: risk.color.withValues(alpha: 0.15),
+              color: _rc.color.withValues(alpha: 0.12),
             ),
-            child: Icon(risk.icon, color: risk.color, size: 24),
+            child: Icon(_rc.icon, color: _rc.color, size: 22),
           ),
-          const SizedBox(width: AppTheme.space3),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Row(
-                  children: [
-                    Text(risk.label,
-                        style: AppTheme.title3.copyWith(color: risk.color)),
-                    const SizedBox(width: AppTheme.space2),
-                    Text(risk.sublabel,
-                        style: AppTheme.footnote.copyWith(color: risk.color)),
-                  ],
-                ),
-                const SizedBox(height: AppTheme.space1),
-                Text(summary, style: AppTheme.subhead.copyWith(height: 1.4)),
+                Text(_rc.label,
+                    style: TextStyle(
+                        color: _rc.color,
+                        fontSize: 17,
+                        fontWeight: FontWeight.bold)),
+                Text(r.summary,
+                    style: const TextStyle(color: AppColors.textSec, fontSize: 12),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis),
               ],
             ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.close_rounded, color: AppColors.textTert),
+            onPressed: () => Navigator.pop(context),
           ),
         ],
       ),
     );
   }
-}
 
-// ============================================================
-// Generic card
-// ============================================================
-class _Card extends StatelessWidget {
-  final Widget child;
-  final Color? bg;
-  final Color? border;
-  const _Card({required this.child, this.bg, this.border});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(AppTheme.space4),
-      decoration: BoxDecoration(
-        color: bg ?? AppTheme.bgCard,
-        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-        border: border != null ? Border.all(color: border!) : null,
-        boxShadow: bg == null ? AppTheme.cardShadow : null,
-      ),
-      child: child,
+  Widget _buildImage() {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(AppRadius.md),
+      child: Image.file(File(widget.imagePath!),
+          height: 200, width: double.infinity, fit: BoxFit.cover),
     );
   }
-}
 
-// ============================================================
-// Case card
-// ============================================================
-class _CaseCard extends StatelessWidget {
-  final MatchedCase matchedCase;
-  const _CaseCard({required this.matchedCase});
-
-  @override
-  Widget build(BuildContext context) {
-    final risk = AppTheme.riskStyle(matchedCase.riskLevel);
+  Widget _buildSummary(AnalysisResult r) {
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.only(bottom: AppTheme.space2),
-      padding: const EdgeInsets.all(AppTheme.space3),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppTheme.bgCard,
-        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-        boxShadow: AppTheme.cardShadow,
+        gradient: LinearGradient(
+          colors: [
+            _rc.color.withValues(alpha: 0.08),
+            _rc.color.withValues(alpha: 0.02),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        border: Border.all(color: _rc.color.withValues(alpha: 0.12)),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.auto_awesome_rounded, color: _rc.color, size: 18),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(r.summary,
+                style: const TextStyle(
+                    color: Colors.white, fontSize: 14, height: 1.5)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCard({
+    required IconData icon,
+    required String title,
+    required Widget child,
+    bool danger = false,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: danger ? const Color(0xFF1E1214) : AppColors.card,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        border: Border.all(
+          color: danger ? AppColors.red.withValues(alpha: 0.15) : AppColors.divider,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon,
+                  color: danger ? AppColors.red : AppColors.blue, size: 16),
+              const SizedBox(width: 8),
+              Text(title,
+                  style: TextStyle(
+                    color: danger ? AppColors.red : Colors.white,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  )),
+            ],
+          ),
+          const SizedBox(height: 10),
+          child,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCauses(AnalysisResult r) {
+    return Column(
+      children: r.possibleCauses
+          .map((c) => Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 5,
+                      height: 5,
+                      margin: const EdgeInsets.only(top: 7, right: 10),
+                      decoration: const BoxDecoration(
+                        color: AppColors.blue,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(c,
+                          style: const TextStyle(
+                              color: Colors.white, fontSize: 13, height: 1.5)),
+                    ),
+                  ],
+                ),
+              ))
+          .toList(),
+    );
+  }
+
+  Widget _buildCases(AnalysisResult r) {
+    return Column(
+      children: r.matchedCases.take(4).map((c) => _caseTile(c)).toList(),
+    );
+  }
+
+  Widget _caseTile(MatchedCase c) {
+    final rc = _riskConfig(c.riskLevel);
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: rc.color.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+        border: Border.all(color: rc.color.withValues(alpha: 0.08)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
             width: 4,
-            height: 40,
-            decoration: BoxDecoration(
-              color: risk.color,
-              borderRadius: BorderRadius.circular(2),
-            ),
+            height: 4,
+            margin: const EdgeInsets.only(top: 6, right: 10),
+            decoration: BoxDecoration(color: rc.color, shape: BoxShape.circle),
           ),
-          const SizedBox(width: AppTheme.space3),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(matchedCase.title,
-                    style: AppTheme.callout,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis),
-                if (matchedCase.realCaseSummary.isNotEmpty) ...[
-                  const SizedBox(height: AppTheme.space1),
-                  Text(matchedCase.realCaseSummary,
+                Text(c.title,
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        height: 1.3)),
+                if (c.realCaseSummary.isNotEmpty) ...[
+                  const SizedBox(height: 3),
+                  Text(c.realCaseSummary,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: AppTheme.footnote.copyWith(height: 1.4)),
+                      style: const TextStyle(
+                          color: AppColors.textSec, fontSize: 11, height: 1.4)),
                 ],
               ],
             ),
@@ -345,4 +346,38 @@ class _CaseCard extends StatelessWidget {
       ),
     );
   }
+
+  _RiskConfig _riskConfig(String level) {
+    switch (level) {
+      case 'low':
+        return _RiskConfig(
+          color: AppColors.green,
+          icon: Icons.check_circle_outline,
+          label: '低风险',
+        );
+      case 'high':
+        return _RiskConfig(
+          color: AppColors.red,
+          icon: Icons.dangerous_rounded,
+          label: '高风险 · 尽快就医',
+        );
+      default:
+        return _RiskConfig(
+          color: AppColors.orange,
+          icon: Icons.warning_amber_rounded,
+          label: '中风险 · 观察护理',
+        );
+    }
+  }
+}
+
+class _RiskConfig {
+  final Color color;
+  final IconData icon;
+  final String label;
+  const _RiskConfig({
+    required this.color,
+    required this.icon,
+    required this.label,
+  });
 }
