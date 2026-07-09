@@ -2,75 +2,84 @@
 猫省省 — AI 分析流水线
 拍照 → 图像分类 → 特征提取 → 案例匹配 → LLM 综合分析 → 分层结果
 """
-import json, base64, io, re
+import json, base64, io, re, os
 from typing import Optional
 from openai import OpenAI
-from pgvecto_rs.sdk import PGVectoRs
-from pgvecto_rs.sdk.filters import meta_contains
 import numpy as np
 
 # ============================================================
 # Config
 # ============================================================
-DEEPSEEK_API_KEY = "sk-your-deepseek-key"  # 从环境变量或配置文件读取
+DEEPSEEK_API_KEY = os.environ.get("DEEPSEEK_API_KEY", "")
 DEEPSEEK_BASE_URL = "https://api.deepseek.com"
 CASES_PATH = "../cases.json"
 
 # ============================================================
-# Vector Store
+# Vector Store (numpy-based — 零依赖，后续切 pgvector 只改此类)
 # ============================================================
 class VectorStore:
-    """Embedded pgvecto-rs vector store for case similarity search"""
+    """In-memory vector store using numpy cosine similarity"""
     
-    def __init__(self):
-        self.store = PGVectoRs(dimension=512)
-        self.cases = []
+    def __init__(self, dim: int = 512):
+        self.dim = dim
+        self.vectors: np.ndarray = None       # N x dim
+        self.cases: list = []
         self._load_cases()
     
     def _load_cases(self):
-        """Load cases from JSON and index them"""
+        """Load cases from JSON and build vectors"""
         with open(CASES_PATH, 'r', encoding='utf-8') as f:
             self.cases = json.load(f)
         
-        # Create embeddings from case text
-        for i, case in enumerate(self.cases):
+        vectors = []
+        for case in self.cases:
             text = f"{case.get('title','')} {case.get('symptom_text','')} {case.get('image_features','')}"
-            emb = self._text_to_embedding(text)
-            metadata = {
-                "case_id": case["id"],
-                "category": case["category"],
-                "risk_level": case["risk_level"],
-                "title": case["title"]
-            }
-            self.store.insert(emb, metadata)
+            vec = self._text_to_vec(text)
+            vectors.append(vec)
         
-        self.store.build_index()
+        self.vectors = np.array(vectors, dtype=np.float32)
+        # Normalize for cosine similarity
+        norms = np.linalg.norm(self.vectors, axis=1, keepdims=True)
+        norms[norms == 0] = 1
+        self.vectors = self.vectors / norms
     
-    def _text_to_embedding(self, text: str) -> np.ndarray:
-        """Simple TF-IDF-like embedding (MVP — upgrade to CLIP/Sentence-BERT later)"""
-        # For MVP: use a hash-based embedding
-        # Production: CLIP for images, Sentence-BERT for text
-        words = re.findall(r'\w+', text.lower())
-        vec = np.zeros(512)
-        for i, w in enumerate(words):
-            h = hash(w) % 512
+    def _text_to_vec(self, text: str) -> np.ndarray:
+        """Simple TF-IDF-like embedding using character n-gram hashing"""
+        vec = np.zeros(self.dim, dtype=np.float32)
+        # Character bigrams for Chinese text
+        for i in range(len(text)-1):
+            bigram = text[i:i+2]
+            h = hash(bigram) % self.dim
             vec[h] += 1
-        norm = np.linalg.norm(vec)
-        return vec / norm if norm > 0 else vec
+        # Also add unigrams
+        for ch in text:
+            h = hash(ch) % self.dim
+            vec[h] += 0.3
+        return vec
     
-    def search(self, text: str, top_k: int = 5) -> list:
-        """Search similar cases"""
-        emb = self._text_to_embedding(text)
-        results = self.store.search(emb, top_k=top_k)
-        matches = []
-        for r in results:
-            case = self.cases[r['index']] if r['index'] < len(self.cases) else None
-            if case:
-                matches.append({
-                    "score": float(r['score']),
-                    "case": case
+    def search(self, query_text: str, top_k: int = 5) -> list:
+        """Search similar cases by cosine similarity"""
+        if self.vectors is None or len(self.vectors) == 0:
+            return []
+        
+        query_vec = self._text_to_vec(query_text)
+        q_norm = np.linalg.norm(query_vec)
+        if q_norm > 0:
+            query_vec = query_vec / q_norm
+        
+        # Cosine similarity
+        scores = np.dot(self.vectors, query_vec)
+        top_indices = np.argsort(scores)[::-1][:top_k]
+        
+        results = []
+        for idx in top_indices:
+            if scores[idx] > 0:
+                results.append({
+                    "score": float(scores[idx]),
+                    "case": self.cases[idx],
+                    "index": int(idx)
                 })
-        return matches
+        return results
 
 
 # ============================================================
