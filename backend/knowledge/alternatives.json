@@ -1,0 +1,18 @@
+[
+  {"category":"饮水","item":"宠物智能饮水机","price":"199-399元","alternative":"酸奶机","alt_price":"15-30元","reason":"恒温、流动水、静音，功能完全相同"},
+  {"category":"睡眠","item":"豪华猫窝","price":"150-500元","alternative":"快递纸箱","alt_price":"0元","reason":"猫只认纸箱，生物学事实"},
+  {"category":"睡眠","item":"宠物电热毯","price":"80-200元","alternative":"人用电热毯(低温定时)","alt_price":"30-50元","reason":"同功能"},
+  {"category":"食物","item":"猫条/猫酱","price":"3-8元/条","alternative":"水煮鸡胸肉撕丝","alt_price":"鸡胸12元/斤","reason":"成分单一、无添加、高蛋白"},
+  {"category":"食物","item":"宠物牛奶","price":"15-25元/瓶","alternative":"0乳糖舒化奶","alt_price":"5元/瓶","reason":"成分完全一致"},
+  {"category":"营养","item":"化毛膏","price":"40-80元","alternative":"小麦种子种猫草","alt_price":"5元","reason":"天然纤维+催吐，比矿物油膏健康"},
+  {"category":"营养","item":"卵磷脂/美毛粉","price":"50-150元","alternative":"煮鸡蛋黄","alt_price":"1元/个","reason":"最天然卵磷脂，一周半个即可"},
+  {"category":"营养","item":"宠物鱼油","price":"80-389元","alternative":"人用鱼油(剪开滴粮)","alt_price":"30-80元","reason":"Omega-3完全相同"},
+  {"category":"如厕","item":"全自动猫砂盆","price":"1000-4000元","alternative":"大号开放猫砂盆","alt_price":"20-50元","reason":"仍需手清废盒，有卡猫风险"},
+  {"category":"如厕","item":"猫砂除臭珠","price":"30-80元","alternative":"食用小苏打","alt_price":"3元","reason":"铺底或混入，无色无味"},
+  {"category":"清洁","item":"宠物湿巾","price":"20-40元/包","alternative":"婴儿湿巾(无香无酒精)","alt_price":"8-15元","reason":"婴儿标准比宠物严格得多"},
+  {"category":"清洁","item":"宠物洗眼液","price":"30-80元","alternative":"生理盐水","alt_price":"3元","reason":"无刺激，无菌"},
+  {"category":"清洁","item":"宠物沐浴露","price":"40-120元","alternative":"猫不需要洗澡","alt_price":"0元","reason":"猫自洁，洗澡破坏皮肤屏障"},
+  {"category":"玩具","item":"品牌猫玩具套装","price":"50-200元","alternative":"纸团+激光笔+麻绳逗猫棒","alt_price":"15元","reason":"猫最爱这三样"},
+  {"category":"散热","item":"宠物冰垫","price":"30-120元","alternative":"大铝盆","alt_price":"10-20元","reason":"天然导热"},
+  {"category":"出行","item":"网红透明猫包","price":"100-400元","alternative":"航空箱+盖布","alt_price":"30-80元","reason":"透明让猫焦虑，航空箱私密安全"}
+]

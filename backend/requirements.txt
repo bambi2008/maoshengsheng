@@ -1,0 +1,8 @@
+# 猫省省 后端依赖
+fastapi>=0.100.0
+uvicorn>=0.23.0
+python-multipart
+openai>=1.0.0
+pgvecto-rs[sdk]>=0.2.0
+numpy>=1.24.0
+psycopg2-binary>=2.9.0  # 未来迁移 PostgreSQL 时使用

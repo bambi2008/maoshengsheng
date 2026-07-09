@@ -1,0 +1,31 @@
+[
+  {"name":"大宠爱 成猫","generic":"塞拉菌素","category":"驱虫","prices":[
+    {"platform":"京东自营","price":68,"url":"https://item.jd.com/xxx"},
+    {"platform":"淘宝","price":62.5,"url":"https://item.taobao.com/xxx"},
+    {"platform":"拼多多百亿补贴","price":59.9,"url":"https://pdd.com/xxx"}
+  ],"alternatives":[{"name":"雷米高塞拉菌素","price":28,"note":"成分相同，国产替代"}]},
+  {"name":"海乐妙","generic":"米尔贝肟/吡喹酮","category":"驱虫","prices":[
+    {"platform":"京东自营","price":55,"url":"https://item.jd.com/xxx"},
+    {"platform":"淘宝","price":48,"url":"https://item.taobao.com/xxx"}
+  ]},
+  {"name":"福来恩","generic":"非泼罗尼","category":"驱虫","prices":[
+    {"platform":"京东自营","price":55,"url":"https://item.jd.com/xxx"},
+    {"platform":"淘宝","price":49,"url":"https://item.taobao.com/xxx"}
+  ]},
+  {"name":"耳肤灵","generic":"克霉唑/庆大霉素","category":"耳药","prices":[
+    {"platform":"京东自营","price":65,"url":"https://item.jd.com/xxx"},
+    {"platform":"淘宝","price":55,"url":"https://item.taobao.com/xxx"}
+  ]},
+  {"name":"伊曲康唑","generic":"伊曲康唑","category":"抗真菌","prices":[
+    {"platform":"京东大药房","price":25,"url":"https://item.jd.com/xxx"},
+    {"platform":"淘宝","price":18,"url":"https://item.taobao.com/xxx"}
+  ],"note":"人药店可买，猫用需遵医嘱调整剂量"},
+  {"name":"速诺","generic":"阿莫西林克拉维酸","category":"抗生素","prices":[
+    {"platform":"京东自营","price":85,"url":"https://item.jd.com/xxx"},
+    {"platform":"淘宝","price":68,"url":"https://item.taobao.com/xxx"}
+  ]},
+  {"name":"甲硝唑","generic":"甲硝唑","category":"抗生素","prices":[
+    {"platform":"京东大药房","price":8,"url":"https://item.jd.com/xxx"},
+    {"platform":"淘宝","price":6.5,"url":"https://item.taobao.com/xxx"}
+  ],"note":"人药店可买，猫用需遵医嘱调整剂量"}
+]
