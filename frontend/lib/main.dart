@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'theme.dart';
 import 'screens/camera_screen.dart';
 import 'screens/knowledge_screen.dart';
 
@@ -14,25 +15,7 @@ class MaoShengShengApp extends StatelessWidget {
     return MaterialApp(
       title: '猫省省',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        brightness: Brightness.dark,
-        scaffoldBackgroundColor: const Color(0xFF0F1117),
-        colorScheme: const ColorScheme.dark(
-          primary: Color(0xFF3B82F6),
-          secondary: Color(0xFF3B82F6),
-          surface: Color(0xFF161822),
-        ),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF0F1117),
-          elevation: 0,
-        ),
-        bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-          backgroundColor: Color(0xFF0F1117),
-          selectedItemColor: Color(0xFF3B82F6),
-          unselectedItemColor: Color(0xFF8890A4),
-        ),
-        fontFamily: 'PingFang SC',
-      ),
+      theme: AppTheme.theme,
       home: const MainScreen(),
     );
   }
@@ -56,20 +39,76 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _screens[_currentIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (i) => setState(() => _currentIndex = i),
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.camera_alt_rounded),
-            label: '拍照分析',
+      body: IndexedStack(index: _currentIndex, children: _screens),
+      bottomNavigationBar: Container(
+        decoration: const BoxDecoration(
+          color: AppTheme.bgCard,
+          border: Border(
+            top: BorderSide(color: AppTheme.separator, width: 0.5),
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.lightbulb_outline_rounded),
-            label: '避坑百科',
+        ),
+        child: SafeArea(
+          top: false,
+          child: SizedBox(
+            height: 49,
+            child: Row(
+              children: [
+                _NavItem(
+                  icon: Icons.camera_alt_rounded,
+                  label: '拍照分析',
+                  active: _currentIndex == 0,
+                  onTap: () => setState(() => _currentIndex = 0),
+                ),
+                _NavItem(
+                  icon: Icons.menu_book_rounded,
+                  label: '避坑百科',
+                  active: _currentIndex == 1,
+                  onTap: () => setState(() => _currentIndex = 1),
+                ),
+              ],
+            ),
           ),
-        ],
+        ),
+      ),
+    );
+  }
+}
+
+class _NavItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool active;
+  final VoidCallback onTap;
+
+  const _NavItem({
+    required this.icon,
+    required this.label,
+    required this.active,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = active ? AppTheme.blue : AppTheme.textSec;
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: color, size: 24),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: TextStyle(
+                color: color,
+                fontSize: 10,
+                fontWeight: active ? FontWeight.w600 : FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
